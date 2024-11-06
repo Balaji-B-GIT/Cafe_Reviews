@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap5
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField, URLField
@@ -20,17 +20,17 @@ This will install the packages from requirements.txt for this project.
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
-bootstrap = Bootstrap5(app)
+Bootstrap5(app)
 
 
 class CafeForm(FlaskForm):
     cafe = StringField('Cafe name', validators=[DataRequired()])
     location_url = URLField('location', validators=[URL()])
     open_time = StringField('open_time', validators=[DataRequired()])
-    close_time = StringField('close_time', validators=[DataRequired()])
-    coffee_rating = SelectField('coffee_rating',choices=[('0', '✘'), ('1', '☕️'), ('2', '☕️☕️'), ('3', '☕️☕️☕️'), ('4', '☕️☕️☕️☕️'), ('5', '☕️☕️☕️☕️☕️')],validators=[DataRequired()])
-    wifi_rating = SelectField('wifi_rating',choices=[('0', '✘'), ('1', '💪'), ('2', '💪💪'), ('3', '💪💪💪'), ('4', '💪💪💪💪'), ('5', '💪💪💪💪💪')],validators=[DataRequired()])
-    power_outlet_rating = SelectField('power_outlet_rating',choices=[('0', '✘'), ('1', '🔌'), ('2', '🔌🔌'), ('3', '🔌🔌🔌'), ('4', '🔌🔌🔌🔌'), ('5', '🔌🔌🔌🔌🔌')],validators=[DataRequired()])
+    close_time = StringField('close_time', validators=[DataRequired()])# Below choices are (display_value,actual_value)
+    coffee_rating = SelectField('coffee_rating',choices=[('✘', '✘'), ('☕️', '☕️'), ('☕️☕️', '☕️☕️'), ('☕️☕️☕️', '☕️☕️☕️'), ('☕️☕️☕️☕️', '☕️☕️☕️☕️'), ('☕️☕️☕️☕️☕️', '☕️☕️☕️☕️☕️')],validators=[DataRequired()])
+    wifi_rating = SelectField('wifi_rating',choices=[('✘', '✘'), ('💪', '💪'), ('💪💪', '💪💪'), ('💪💪💪', '💪💪💪'), ('💪💪💪💪', '💪💪💪💪'), ('💪💪💪💪💪', '💪💪💪💪💪')],validators=[DataRequired()])
+    power_outlet_rating = SelectField('power_outlet_rating',choices=[('✘', '✘'), ('🔌', '🔌'), ('🔌🔌', '🔌🔌'), ('🔌🔌🔌', '🔌🔌🔌'), ('🔌🔌🔌🔌', '🔌🔌🔌🔌'), ('🔌🔌🔌🔌🔌', '🔌🔌🔌🔌🔌')],validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 # Exercise:
@@ -48,14 +48,21 @@ def home():
     return render_template("index.html")
 
 
-@app.route('/add')
+@app.route('/add',methods=["POST","GET"])
 def add_cafe():
     form = CafeForm()
+    new_row_list = []
+    all_data_list = []
     if form.validate_on_submit():
-        print("True")
-    # Exercise:
-    # Make the form write a new row into cafe-data.csv
-    # with   if form.validate_on_submit()
+        with open("cafe-data.csv", mode="a", encoding='utf-8') as csv_file:
+            csv_file.write(f"\n{form.cafe.data},"
+                           f"{form.location_url.data},"
+                           f"{form.open_time.data},"
+                           f"{form.close_time.data},"
+                           f"{form.coffee_rating.data},"
+                           f"{form.wifi_rating.data},"
+                           f"{form.power_outlet_rating.data}")
+        return redirect(url_for('cafes'))
     return render_template('add.html', form=form)
 
 
